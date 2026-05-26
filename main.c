@@ -87,7 +87,7 @@ void Clear(Stek *st)
 }
 
 
-
+int Tab[256]={0};
 
 bool Readning(char *stroki , char *futurerpn,int buffer)
 {
@@ -97,64 +97,56 @@ bool Readning(char *stroki , char *futurerpn,int buffer)
   int count = 0;
   bool readingfs = true; // флаг чтобы считать 1 строку
   bool isequal = false;// проверка что есть знак
-  bool lastDigit = false;
-  bool lastZnak = false;
   unsigned char el = 0;
-  char equal;
-  while(count <= buffer && readingfs && fscanf(in,"%c",&el))
+  while(count <= buffer && readingfs && fscanf(in,"%c",&el)==1)
   {
   if (el == '\n')
     {
     readingfs = false;
     }
 
-  else
-    {
-    if(isequal && el == '='){return false;}
-    if (fscanf(in,"%c",&equal) ==1 && equal == '=' && count == 2) // то есть , 2 знак железно =
-        {
-          futurerpn[count] = equal;
-          count++;
-          isequal=true;
-          lastZnak= true;
-        }
-    else if ((el >= 'a' && el <= 'z') || (el >= 'A' && el <= 'Z') || (el >= '0' && el <= '9'))
+  else{
+      if (el != ' ')
         {
           futurerpn[count] = el;
           count++;
-          lastDigit = true;
         }
-    else if ( (el >= '(' && el <= '+') || el =='-' || el=='/' || el == '=')
-        {
-          if (lastZnak ==true && (el =='/' ||el == '*') ){}
-          futurerpn[count] = el;
-          count++;
-          lastZnak = true;
+
+       }
+  }
+  futurerpn[count] = '\0';
+  char  name;
+  int valu;
+    while (fscanf(in, " %c = %d", &name, &valu) == 2) {
+        if ((name >= 'a' && name <= 'z') || (name >= 'A' && name <= 'Z')) {
+            Tab[(unsigned char)name] = valu;
         }
     }
-
-  }
-
-
+  fclose(in);
 return true;}
 
 
+bool CreateRPN(char *stroka,char *poliz)
+{
+  for (int i = 0; stroka[i] != '\n'; i++)
+  {
+    char element = stroka[i];//берем элемент
+  }
 
+}
 
 
 
 
 int main()
 {
-  Stek st;
-  st.size = 0;
-  st.Top = NULL;
-  Push(&st, 1);
-  Push(&st, 2);
-  Push(&st, 3);
-  Push(&st, 4);
-  Push(&st, 5);
-  Push(&st, 6);
+
+  int buff = 2000;
+  char url[1000] = "/Users/fliruden/vuz/RPN/file.txt";
+  char exit[1000];
+  Readning(url,exit,buff);
+  printf("%s",exit);
+  //printf("%s",exit);
     //     Node*pi = NULL, *pj = NULL;
 
     // //Вывод значения стека не экран без изменения струкутры стека(т.е. ничего не удаляем, просто выводим на экран)
