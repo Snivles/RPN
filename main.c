@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 
 struct nodeList
@@ -76,8 +77,6 @@ bool Pop(Stek *st, int *value)
 
 }
 
-
-
 void Clear(Stek *st)
 {
   int trash;
@@ -86,6 +85,64 @@ void Clear(Stek *st)
   }
   free(st);
 }
+
+
+
+
+bool Readning(char *stroki , char *futurerpn,int buffer)
+{
+  if (stroki == NULL){return false;}
+  FILE*in =fopen(stroki,"r");
+  if (in== NULL){return false;}
+  int count = 0;
+  bool readingfs = true; // флаг чтобы считать 1 строку
+  bool isequal = false;// проверка что есть знак
+  bool lastDigit = false;
+  bool lastZnak = false;
+  unsigned char el = 0;
+  char equal;
+  while(count <= buffer && readingfs && fscanf(in,"%c",&el))
+  {
+  if (el == '\n')
+    {
+    readingfs = false;
+    }
+
+  else
+    {
+    if(isequal && el == '='){return false;}
+    if (fscanf(in,"%c",&equal) ==1 && equal == '=' && count == 2) // то есть , 2 знак железно =
+        {
+          futurerpn[count] = equal;
+          count++;
+          isequal=true;
+          lastZnak= true;
+        }
+    else if ((el >= 'a' && el <= 'z') || (el >= 'A' && el <= 'Z') || (el >= '0' && el <= '9'))
+        {
+          futurerpn[count] = el;
+          count++;
+          lastDigit = true;
+        }
+    else if ( (el >= '(' && el <= '+') || el =='-' || el=='/' || el == '=')
+        {
+          if (lastZnak ==true && (el =='/' ||el == '*') ){}
+          futurerpn[count] = el;
+          count++;
+          lastZnak = true;
+        }
+    }
+
+  }
+
+
+return true;}
+
+
+
+
+
+
 
 int main()
 {
@@ -106,10 +163,5 @@ int main()
     //     {
     //             printf("%d,", pi->inf);
     //     }
-// Самостоятельно познакомьтесь с оператором множественного выбора switch - case
-// рекомендую следуюий материал для знакомства
-// https://ravesli.com/urok-65-operator-switch/
-// Также познакомьтесь с перечислениями, используемые в примерах оператора switch - case
-// из предыдущего примера
   return 0;
 }
