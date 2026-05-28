@@ -142,7 +142,7 @@ bool CreateRPN(char *stroka,char *poliz)
   st.Top = NULL;
   st.size = 0;
   int lenrpn = 0;
-  bool prevskob = true;
+  bool prevskob = false;
   for (int i = 0; stroka[i] != '\0'; i++)
   {
     char element = stroka[i];
@@ -169,12 +169,12 @@ bool CreateRPN(char *stroka,char *poliz)
               lenrpn++;
             }
           if (isEmpty(st) && (char)simvol != '('){return false;}
+          prevskob=false;
         }
       else if (element == '+' || element == '-' || element == '*' || element == '/')
       {
         bool unznak = false;
         if (prevskob && (element == '+' || element == '-')){unznak = true;}
-
         if (unznak){poliz[lenrpn] = '0'; lenrpn++;}
         int currentpr = Tab[element];
         int Toppr;
@@ -205,7 +205,49 @@ bool CreateRPN(char *stroka,char *poliz)
   return true;
 }
 
-
+int SolveRPN(char *rpn)
+{
+  Stek st;
+  st.Top = NULL;
+  st.size = 0;
+  for (int i = 0; rpn[i] != '\0'; i++)
+  {
+    char element = rpn[i];
+    if ((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z') || (element >= '0' && element <= '9'))
+    {
+      Push(&st,element);
+    }
+    else{
+    int res = 0;
+    int num1;
+    int num2;
+    if (!Pop(&st,&num1))
+      {
+      Clear(&st);
+      return false;
+      }
+    if (!Pop(&st,&num2))
+      {
+      Clear(&st);
+      return false;
+      }
+    if (element == '+'){res = num2 +num1;}
+    else if (element == '-'){res = num2 -num1;}
+    else if (element == '*'){res = num2 *num1;}
+    else if (element == '/'){
+      if (num1 == 0){return false;}
+      res = num2/num1;
+      }
+    Push(&st,res);}
+  int res;
+  if (!isEmpty(st)){
+    Pop(&st,&res);
+    if (!isEmpty(st)){return false;}
+    return res;
+}
+  return false;
+}
+  }
 
 
 int main()
