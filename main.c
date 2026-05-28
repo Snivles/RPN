@@ -89,6 +89,17 @@ void Clear(Stek *st)
 
 int Tab[256]={0};
 
+
+void Priority()
+{
+  Tab['+'] = 1;
+  Tab['-'] = 1;
+  Tab['*'] = 2;
+  Tab['/'] = 2;
+  Tab['('] = 0;
+  Tab['='] = 9;
+}
+
 bool Readning(char *stroki , char *futurerpn,int buffer)
 {
   if (stroki == NULL){return false;}
@@ -96,7 +107,6 @@ bool Readning(char *stroki , char *futurerpn,int buffer)
   if (in== NULL){return false;}
   int count = 0;
   bool readingfs = true; // флаг чтобы считать 1 строку
-  bool isequal = false;// проверка что есть знак
   unsigned char el = 0;
   while(count <= buffer && readingfs && fscanf(in,"%c",&el)==1)
   {
@@ -119,7 +129,7 @@ bool Readning(char *stroki , char *futurerpn,int buffer)
   int valu;
     while (fscanf(in, " %c = %d", &name, &valu) == 2) {
         if ((name >= 'a' && name <= 'z') || (name >= 'A' && name <= 'Z')) {
-            Tab[(unsigned char)name] = valu;
+            Tab[name] = valu;
         }
     }
   fclose(in);
@@ -128,11 +138,71 @@ return true;}
 
 bool CreateRPN(char *stroka,char *poliz)
 {
-  for (int i = 0; stroka[i] != '\n'; i++)
+  Stek st;
+  st.Top = NULL;
+  st.size = 0;
+  int lenrpn = 0;
+  bool prevskob = true;
+  for (int i = 0; stroka[i] != '\0'; i++)
   {
-    char element = stroka[i];//берем элемент
-  }
+    char element = stroka[i];
+    if (element != ' ')
+    {
+      if ((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z') || (element >= '0' && element <= '9'))
+      {
+      poliz[lenrpn] = element;
+      lenrpn++;
+      prevskob = false;
+      }
+      else if (element == '(')
+        {
+          Push(&st,element);
+          prevskob = true;
+        }
+      else if (element == ')')
+        {
+          if (isEmpty(st)){return false;}
+          int simvol;
+          while (Pop(&st,&simvol) && (char)simvol != '(')
+            {
+              poliz[lenrpn] = (char)simvol;
+              lenrpn++;
+            }
+          if (isEmpty(st) && (char)simvol != '('){return false;}
+        }
+      else if (element == '+' || element == '-' || element == '*' || element == '/')
+      {
+        bool unznak = false;
+        if (prevskob && (element == '+' || element == '-')){unznak = true;}
 
+        if (unznak){poliz[lenrpn] = '0'; lenrpn++;}
+        int currentpr = Tab[element];
+        int Toppr;
+        bool cont = true;
+        while (!isEmpty(st) && ShowTop(st, &Toppr) && cont)
+        {
+          if (Tab[(char)Toppr]>= currentpr)
+            {
+              Pop(&st,&Toppr);
+              poliz[lenrpn] = (char)Toppr;
+              lenrpn++;
+            }
+          else{cont =false;}
+        }
+        Push(&st,element);
+        prevskob = false;
+      }
+    }
+  }
+  int simvol;
+  while (Pop(&st, &simvol))
+  {
+      if ((char)simvol == '('){return false;}
+      poliz[lenrpn] = (char)simvol;
+      lenrpn++;
+  }
+  poliz[lenrpn] = '\0';
+  return true;
 }
 
 
@@ -144,16 +214,15 @@ int main()
   int buff = 2000;
   char url[1000] = "/Users/fliruden/vuz/RPN/file.txt";
   char exit[1000];
+  char rpn[1000];
+  Priority();
   Readning(url,exit,buff);
+  if (!(CreateRPN(exit,rpn))){printf("ERROR"); return 0;}
   printf("%s",exit);
-  //printf("%s",exit);
-    //     Node*pi = NULL, *pj = NULL;
-
-    // //Вывод значения стека не экран без изменения струкутры стека(т.е. ничего не удаляем, просто выводим на экран)
-    // //с помощю цикла выполняем навигацию по элементам стека.
-    //     for (pi = st.Top; pi; pi = pi->next)
-    //     {
-    //             printf("%d,", pi->inf);
-    //     }
+  printf("\n");
+  printf("%s",rpn);
+  // for(int j = 0;j <= 255; j++){
+  //   if (Tab[j] != 0){printf("%d",Tab[j]);}}
+  // printf("%s",exit);
   return 0;
 }
