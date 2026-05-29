@@ -83,7 +83,6 @@ void Clear(Stek *st)
   while (!isEmpty(*st)){
     Pop(st,&trash);
   }
-  free(st);
 }
 
 
@@ -210,14 +209,20 @@ bool SolveRPN(char *rpn, int *res)
   Stek st;
   st.Top = NULL;
   st.size = 0;
+  bool chislo = false;
   for (int i = 0; rpn[i] != '\0'; i++)
   {
     char element = rpn[i];
     if ((element >= '0' && element <= '9'))
     {
+      if (chislo){return false;}
       Push(&st,element-'0');
+      chislo = true;
     }
-    else if ((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z')){Push(&st,Tab[element]);}
+    else if ((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z')){
+        Push(&st,Tab[element]);
+        chislo = false;
+        }
     else{
     int num1;
     int num2;
@@ -236,7 +241,8 @@ bool SolveRPN(char *rpn, int *res)
       if (num1 == 0){return false;}
       *res = num2/num1;
       }
-    Push(&st,*res);}}
+    Push(&st,*res);
+    chislo = false;}}
   if (!isEmpty(st)){
     Pop(&st,res);
     if (!isEmpty(st)){return false;}
