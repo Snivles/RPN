@@ -94,7 +94,7 @@ bool Readning(char *stroki , char *futurerpn,int buffer, int *Tab)
   Tab['*'] = 2;
   Tab['/'] = 2;
   Tab['('] = 0;
-  Tab['='] = 9;
+  Tab['='] = -1;
   if (stroki == NULL){return false;}
   FILE*in =fopen(stroki,"r");
   if (in== NULL){return false;}
@@ -164,9 +164,10 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
           if (isEmpty(st) && (char)simvol != '('){return false;}
           prevskob=false;
         }
-      else if (element == '+' || element == '-' || element == '*' || element == '/')
+      else if (element == '+' || element == '-' || element == '*' || element == '/' || element == '=')
       {
         bool unznak = false;
+        if (element == '='){prevskob=true;}
         if (prevskob && (element == '+' || element == '-')){unznak = true;}
         if (unznak){poliz[lenrpn] = '0'; lenrpn++;}
         int currentpr = Tab[element];
@@ -224,6 +225,13 @@ bool SolveRPN(char *rpn, int *res,int *Tab)
           Clear(&st);
           return false;}
         }
+    else if (element == '=') {
+    int num1;
+    if (!Pop(&st, &num1)) return false;
+      *res = num1;
+      Push(&st, *res);
+      chislo = false;
+    }
     else{
     int num1;
     int num2;
@@ -262,6 +270,8 @@ int main()
   int answer;
   Readning(url,exit,buff,Tab);
   if (!(CreateRPN(exit,rpn,Tab))){printf("ERROR"); return 0;}
+
+  printf("%s",rpn);
   if(!(SolveRPN(rpn,&answer,Tab))){printf("ERROR"); return 0;}
   printf("%s",exit);
   printf("\n");
