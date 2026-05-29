@@ -142,7 +142,7 @@ bool CreateRPN(char *stroka,char *poliz)
   st.Top = NULL;
   st.size = 0;
   int lenrpn = 0;
-  bool prevskob = false;
+  bool prevskob = true;
   for (int i = 0; stroka[i] != '\0'; i++)
   {
     char element = stroka[i];
@@ -244,7 +244,6 @@ bool SolveRPN(char *rpn, int *res)
 }
   return true;
   }
-
 
 int main()
 {
