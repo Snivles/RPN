@@ -220,8 +220,10 @@ bool SolveRPN(char *rpn, int *res)
       chislo = true;
     }
     else if ((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z')){
+        if (-9 <= Tab[element] && Tab[element] <= 9){
         Push(&st,Tab[element]);
-        chislo = false;
+        chislo = false;}
+        else {return false;}
         }
     else{
     int num1;
