@@ -86,21 +86,15 @@ void Clear(Stek *st)
 }
 
 
-int Tab[256]={0};
 
 
-void Priority()
-{
-  Tab['+'] = 1;
+bool Readning(char *stroki , char *futurerpn,int buffer, int *Tab)
+{ Tab['+'] = 1;
   Tab['-'] = 1;
   Tab['*'] = 2;
   Tab['/'] = 2;
   Tab['('] = 0;
   Tab['='] = 9;
-}
-
-bool Readning(char *stroki , char *futurerpn,int buffer)
-{
   if (stroki == NULL){return false;}
   FILE*in =fopen(stroki,"r");
   if (in== NULL){return false;}
@@ -135,7 +129,7 @@ bool Readning(char *stroki , char *futurerpn,int buffer)
 return true;}
 
 
-bool CreateRPN(char *stroka,char *poliz)
+bool CreateRPN(char *stroka,char *poliz,int *Tab)
 {
   Stek st;
   st.Top = NULL;
@@ -204,7 +198,7 @@ bool CreateRPN(char *stroka,char *poliz)
   return true;
 }
 
-bool SolveRPN(char *rpn, int *res)
+bool SolveRPN(char *rpn, int *res,int *Tab)
 {
   Stek st;
   st.Top = NULL;
@@ -215,7 +209,10 @@ bool SolveRPN(char *rpn, int *res)
     char element = rpn[i];
     if ((element >= '0' && element <= '9'))
     {
-      if (chislo){return false;}
+      if (chislo){
+      Clear(&st);
+      return false;
+      }
       Push(&st,element-'0');
       chislo = true;
     }
@@ -223,7 +220,9 @@ bool SolveRPN(char *rpn, int *res)
         if (-9 <= Tab[element] && Tab[element] <= 9){
         Push(&st,Tab[element]);
         chislo = false;}
-        else {return false;}
+        else {
+          Clear(&st);
+          return false;}
         }
     else{
     int num1;
@@ -255,16 +254,15 @@ bool SolveRPN(char *rpn, int *res)
 
 int main()
 {
-
+  int Tab[256]={0};
   int buff = 2000;
   char url[1000] = "/Users/fliruden/vuz/RPN/file.txt";
   char exit[1000];
   char rpn[1000];
   int answer;
-  Priority();
-  Readning(url,exit,buff);
-  if (!(CreateRPN(exit,rpn))){printf("ERROR"); return 0;}
-  if(!(SolveRPN(rpn,&answer))){printf("ERROR"); return 0;}
+  Readning(url,exit,buff,Tab);
+  if (!(CreateRPN(exit,rpn,Tab))){printf("ERROR"); return 0;}
+  if(!(SolveRPN(rpn,&answer,Tab))){printf("ERROR"); return 0;}
   printf("%s",exit);
   printf("\n");
   printf("%s %d",rpn, answer);
