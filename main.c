@@ -205,7 +205,7 @@ bool CreateRPN(char *stroka,char *poliz)
   return true;
 }
 
-int SolveRPN(char *rpn)
+bool SolveRPN(char *rpn, int *res)
 {
   Stek st;
   st.Top = NULL;
@@ -213,40 +213,36 @@ int SolveRPN(char *rpn)
   for (int i = 0; rpn[i] != '\0'; i++)
   {
     char element = rpn[i];
-    if ((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z') || (element >= '0' && element <= '9'))
+    if ((element >= '0' && element <= '9'))
     {
-      Push(&st,element);
+      Push(&st,element-'0');
     }
+    else if ((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z')){Push(&st,Tab[element]);}
     else{
-    int res = 0;
     int num1;
     int num2;
     if (!Pop(&st,&num1))
       {
-      Clear(&st);
       return false;
       }
     if (!Pop(&st,&num2))
       {
-      Clear(&st);
       return false;
       }
-    if (element == '+'){res = num2 +num1;}
-    else if (element == '-'){res = num2 -num1;}
-    else if (element == '*'){res = num2 *num1;}
+    if (element == '+'){*res = num2 +num1;}
+    else if (element == '-'){*res = num2 -num1;}
+    else if (element == '*'){*res = num2 *num1;}
     else if (element == '/'){
       if (num1 == 0){return false;}
-      res = num2/num1;
+      *res = num2/num1;
       }
-    Push(&st,res);}
-  int res;
+    Push(&st,*res);}}
   if (!isEmpty(st)){
-    Pop(&st,&res);
+    Pop(&st,res);
     if (!isEmpty(st)){return false;}
-    return res;
+    return true;
 }
-  return false;
-}
+  return true;
   }
 
 
@@ -257,12 +253,14 @@ int main()
   char url[1000] = "/Users/fliruden/vuz/RPN/file.txt";
   char exit[1000];
   char rpn[1000];
+  int answer;
   Priority();
   Readning(url,exit,buff);
   if (!(CreateRPN(exit,rpn))){printf("ERROR"); return 0;}
+  if(!(SolveRPN(rpn,&answer))){printf("ERROR"); return 0;}
   printf("%s",exit);
   printf("\n");
-  printf("%s",rpn);
+  printf("%s %d",rpn, answer);
   // for(int j = 0;j <= 255; j++){
   //   if (Tab[j] != 0){printf("%d",Tab[j]);}}
   // printf("%s",exit);
