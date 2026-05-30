@@ -216,20 +216,19 @@ bool SolveRPN(char *rpn, int *res,int *Tab)
     char element = rpn[i];
     if ((element >= '0' && element <= '9'))
     {
-      if(chislo){return false;}
       Push(&st,element-'0');
-      chislo = true;
+      //chislo = true;
     }
     else if ((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z')){
         Push(&st,Tab[element]);
-        chislo = false;}
+        }
     else if (element == '=') {
     yrav = true;
     int num1;
     if (!Pop(&st, &num1)) return false;
       *res = num1;
       Push(&st, *res);
-      chislo = false;
+      //chislo = false;
     }
     else{
     int num1;
@@ -250,7 +249,8 @@ bool SolveRPN(char *rpn, int *res,int *Tab)
       *res = num2/num1;
       }
     Push(&st,*res);
-    chislo = false;}}
+    //chislo = false;
+    }}
 
   if (isEmpty(st)) return false;
   Pop(&st,res); // достаем ответ
