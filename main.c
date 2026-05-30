@@ -189,8 +189,9 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
           else{cont =false;}
         }
         Push(&st,element);
-        prevskob = false;
         znak = true;
+        if (element != '='){
+        prevskob = false;}
       }
     }
   }
@@ -231,7 +232,9 @@ bool SolveRPN(char *rpn, int *res,int *Tab)
     else if (element == '=') {
     yrav = true;
     int num1;
+    int num2;
     if (!Pop(&st, &num1)) {return false;}
+    if (!Pop(&st, &num2)) {return false;}
       *res = num1;
       Push(&st, *res);
       znak = false;
@@ -295,3 +298,23 @@ int main()
   // printf("%s",exit);
   return 0;
 }
+//y=-(3+4)+2
+//
+//y=-(-(3+4)-a) a=150
+//
+//char url[1000] = "/Users/fliruden/vuz/RPN/fil.txt";
+
+//5+4) ERROR
+//(4+5 ERROR
+//(4+5+) ERROR
+//*(4+5) ERROR
+//=(4+5) ERROR
+
+
+//y=(4+a) a = 150 верно, y=154
+//y=(4++a) ERROR
+//y=(-4+a) a = 150 верно, y=146
+//(-4+a) a = 150 верно, answer=146
+//-4+a a = 150 верно, answer=146
+//-4++a a = 150 ERROR
+//y=-a a = 10 a=-10
