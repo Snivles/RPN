@@ -45,29 +45,29 @@ Node *el = (Node*)malloc(sizeof(Node));
 
 
 
-bool ShowTop( Stek st, int *value)
+bool ShowTop( Stek *st, int *value)
 {
         bool answer = false;
         if (value) {
-                if (st.Top)
+                if (st->Top)
                 {
-                        *value = st.Top->inf;
+                        *value = st->Top->inf;
                         answer = true;
                 }
         }
         return answer;
 }
 
-bool isEmpty(Stek  st)
+bool isEmpty(Stek  *st)
 {
-        if (st.Top == NULL)
+        if (st->Top == NULL)
                 return true;
         return false;
 }
 
 bool Pop(Stek *st, int *value)
 {
-  if (isEmpty(*st)==true){return false;}
+  if (isEmpty(st)==true){return false;}
   Node *currenttop = st->Top;
   *value = currenttop->inf;
   st->Top= currenttop->next;
@@ -80,7 +80,7 @@ bool Pop(Stek *st, int *value)
 void Clear(Stek *st)
 {
   int trash;
-  while (!isEmpty(*st)){
+  while (!isEmpty(st)){
     Pop(st,&trash);
   }
 }
@@ -99,9 +99,9 @@ bool Readning(char *stroki , char *futurerpn,int buffer, int *Tab)
   FILE*in =fopen(stroki,"r");
   if (in== NULL){return false;}
   int count = 0;
-  bool readingfs = true; // флаг чтобы считать 1 строку
+  bool readingfs = true;
   unsigned char el = 0;
-  while(count <= buffer && readingfs && fscanf(in,"%c",&el)==1)
+  while(count < buffer && readingfs && fscanf(in,"%c",&el)==1)
   {
   if (el == '\n')
     {
@@ -158,27 +158,33 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
         }
       else if (element == ')')
         {
-          if (isEmpty(st)){return false;}
+          if (isEmpty(&st)){
+          Clear(&st);
+          return false;}
           int simvol;
           while (Pop(&st,&simvol) && (char)simvol != '(')
             {
               poliz[lenrpn] = (char)simvol;
               lenrpn++;
             }
-          if (isEmpty(st) && (char)simvol != '('){return false;}
+          if (isEmpty(&st) && (char)simvol != '('){
+            Clear(&st);
+            return false;}
           prevskob=false;
         }
       else if (element == '+' || element == '-' || element == '*' || element == '/' || element == '=')
       {
         bool unznak = false;
         //if(znak == true){return false;}
-        if (element == '='){prevskob=true; ravno = true;}
+        if (element == '='){
+            prevskob=true;
+            ravno = true;}
         if (prevskob && (element == '+' || element == '-')){unznak = true; prevskob = false;}
         if (unznak){poliz[lenrpn] = '0'; lenrpn++;}
         int currentpr = Tab[element];
         int Toppr;
         bool cont = true;
-        while (!isEmpty(st) && ShowTop(st, &Toppr) && cont)
+        while (!isEmpty(&st) && ShowTop(&st, &Toppr) && cont)
         {
           if (Tab[(char)Toppr]>= currentpr)
             {
@@ -213,7 +219,6 @@ bool SolveRPN(char *rpn, int *res,int *Tab)
   Stek st;
   st.Top = NULL;
   st.size = 0;
-  bool chislo = false;
   bool yrav = false;
   bool znak = true;
   for (int i = 0; rpn[i] != '\0'; i++)
@@ -230,6 +235,7 @@ bool SolveRPN(char *rpn, int *res,int *Tab)
         znak = false;
         }
     else if (element == '=') {
+    if (yrav){return false;}
     yrav = true;
     int num1;
     int num2;
@@ -264,14 +270,16 @@ bool SolveRPN(char *rpn, int *res,int *Tab)
     //chislo = false;
     }}
 
-  if (isEmpty(st)) return false;
+  if (isEmpty(&st)){
+      Clear(&st);
+      return false;}
   Pop(&st,res); // достаем ответ
-  if (yrav == true&& !isEmpty(st))
+  if (yrav == true&& !isEmpty(&st))
     { int trash;
       Pop(&st,&trash);
 
     }
-  return isEmpty(st);
+  return isEmpty(&st);
   }
 
 int main()
