@@ -89,13 +89,7 @@ void Clear(Stek *st)
 
 
 bool Readning(char *stroki , char *futurerpn,int buffer, int *Tab)
-{ Tab['+'] = 1;
-  Tab['-'] = 1;
-  Tab['*'] = 2;
-  Tab['/'] = 2;
-  Tab['('] = 0;
-  Tab['='] = -1;
-  if (stroki == NULL){return false;}
+{ if (stroki == NULL){return false;}
   FILE*in =fopen(stroki,"r");
   if (in== NULL){return false;}
   int count = 0;
@@ -129,16 +123,25 @@ bool Readning(char *stroki , char *futurerpn,int buffer, int *Tab)
 return true;}
 
 
-bool CreateRPN(char *stroka,char *poliz,int *Tab)
-{
+bool CreateRPN(char *stroka,char *poliz,int *Tab,char*letter)
+{Tab['+'] = 1;
+  Tab['-'] = 1;
+  Tab['*'] = 2;
+  Tab['/'] = 2;
+  Tab['('] = 0;
+  Tab['='] = -1;
+
   Stek st;
   st.Top = NULL;
   st.size = 0;
+
   int first = -10;
   int lenrpn = 0;
   bool ravno = false;
   bool prevskob = true;
   bool znak = false;
+  bool digit = false;
+
   for (int i = 0; stroka[i] != '\0'; i++)
   {
     char element = stroka[i];
@@ -146,7 +149,9 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
     {
       if ((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z') || (element >= '0' && element <= '9'))
       {
-      if(((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z')) && first == -10&& ravno==false){first = (int)element;}
+      if(((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z')) && first == -10&& ravno==false){first = element;}
+      if ((element >= '0' && element <= '9'))
+        {digit=true;}
       poliz[lenrpn] = element;
       lenrpn++;
       prevskob = false;
@@ -177,6 +182,7 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
         bool unznak = false;
         //if(znak == true){return false;}
         if (element == '='){
+            if (znak || digit){return false;}
             prevskob=true;
             ravno = true;}
         if (prevskob && (element == '+' || element == '-')){unznak = true; prevskob = false;}
@@ -203,7 +209,7 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
   }
   int simvol;
   if (ravno == false){first = -10;}
-  Tab[0] = first;
+  *letter = first;
   while (Pop(&st, &simvol))
   {
       if ((char)simvol == '('){return false;}
@@ -214,7 +220,7 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
   return true;
 }
 
-bool SolveRPN(char *rpn, int *res,int *Tab)
+bool SolveRPN(char *rpn, int *res,int *Tab,char *letter)
 {
   Stek st;
   st.Top = NULL;
@@ -230,7 +236,10 @@ bool SolveRPN(char *rpn, int *res,int *Tab)
       znak = false;
       //chislo = true;
     }
-    else if ((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z')){
+    else if (*letter != -10 && element == *letter) {
+      znak = false;
+    }
+    else if (((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z') )){
         Push(&st,Tab[element]);
         znak = false;
         }
@@ -238,9 +247,9 @@ bool SolveRPN(char *rpn, int *res,int *Tab)
     if (yrav){return false;}
     yrav = true;
     int num1;
-    int num2;
+    //int num2;
     if (!Pop(&st, &num1)) {return false;}
-    if (!Pop(&st, &num2)) {return false;}
+    //if (!Pop(&st, &num2)) {return false;}
       *res = num1;
       Push(&st, *res);
       znak = false;
@@ -250,6 +259,7 @@ bool SolveRPN(char *rpn, int *res,int *Tab)
     if(znak == true){Clear(&st); return false;}
     int num1;
     int num2;
+    //bool cheak= false;
     if (!Pop(&st,&num1))
       {
       return false;
@@ -277,6 +287,7 @@ bool SolveRPN(char *rpn, int *res,int *Tab)
   if (yrav == true&& !isEmpty(&st))
     { int trash;
       Pop(&st,&trash);
+      return false;
 
     }
   return isEmpty(&st);
@@ -284,20 +295,21 @@ bool SolveRPN(char *rpn, int *res,int *Tab)
 
 int main()
 {
-  int Tab[256]={0};
+  int Tab[256];
   int buff = 2000;
   char url[1000] = "/Users/fliruden/vuz/RPN/file.txt";
-  char exit[1000];
-  char rpn[1000];
+  char exit[2000];
+  char rpn[2000];
   int answer;
+  char letteryrav=-10;
   Readning(url,exit,buff,Tab);
-  if (!(CreateRPN(exit,rpn,Tab))){printf("ERROR"); return 0;}
+  if (!(CreateRPN(exit,rpn,Tab,&letteryrav))){printf("ERROR"); return 0;}
 
   printf("%s",rpn);
   printf("\n");
-  if(!(SolveRPN(rpn,&answer,Tab))){printf("ERROR"); return 0;}
-  if(Tab[0] != -10){
-  printf("%c=%d",(char)Tab[0], answer);}
+  if(!(SolveRPN(rpn,&answer,Tab,&letteryrav))){printf("ERROR"); return 0;}
+  if(letteryrav != -10){
+  printf("%c=%d",letteryrav, answer);}
   else{
     printf("asnwer=%d",answer);
 }
