@@ -134,7 +134,9 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
   Stek st;
   st.Top = NULL;
   st.size = 0;
+  int first = -10;
   int lenrpn = 0;
+  bool ravno = false;
   bool prevskob = true;
   for (int i = 0; stroka[i] != '\0'; i++)
   {
@@ -143,6 +145,7 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
     {
       if ((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z') || (element >= '0' && element <= '9'))
       {
+      if(((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z')) && first == -10&& ravno==false){first = (int)element;}
       poliz[lenrpn] = element;
       lenrpn++;
       prevskob = false;
@@ -167,7 +170,7 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
       else if (element == '+' || element == '-' || element == '*' || element == '/' || element == '=')
       {
         bool unznak = false;
-        if (element == '='){prevskob=true;}
+        if (element == '='){prevskob=true; ravno = true;}
         if (prevskob && (element == '+' || element == '-')){unznak = true;}
         if (unznak){poliz[lenrpn] = '0'; lenrpn++;}
         int currentpr = Tab[element];
@@ -189,6 +192,8 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
     }
   }
   int simvol;
+  if (ravno == false){first = -10;}
+  Tab[0] = first;
   while (Pop(&st, &simvol))
   {
       if ((char)simvol == '('){return false;}
@@ -205,27 +210,21 @@ bool SolveRPN(char *rpn, int *res,int *Tab)
   st.Top = NULL;
   st.size = 0;
   bool chislo = false;
+  bool yrav = false;
   for (int i = 0; rpn[i] != '\0'; i++)
   {
     char element = rpn[i];
     if ((element >= '0' && element <= '9'))
     {
-      // if (chislo){
-      // Clear(&st);
-      // return false;
-      // }
+      if(chislo){return false;}
       Push(&st,element-'0');
       chislo = true;
     }
     else if ((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z')){
-        if (-9 <= Tab[element] && Tab[element] <= 9){
         Push(&st,Tab[element]);
-        chislo = false;}}
-        // else {
-        //   Clear(&st);
-        //   return false;}
-        // }
+        chislo = false;}
     else if (element == '=') {
+    yrav = true;
     int num1;
     if (!Pop(&st, &num1)) return false;
       *res = num1;
@@ -252,12 +251,15 @@ bool SolveRPN(char *rpn, int *res,int *Tab)
       }
     Push(&st,*res);
     chislo = false;}}
-  if (!isEmpty(st)){
-    Pop(&st,res);
-    if (!isEmpty(st)){return false;}
-    return true;
-}
-  return true;
+
+  if (isEmpty(st)) return false;
+  Pop(&st,res); // достаем ответ
+  if (yrav == true&& !isEmpty(st))
+    { int trash;
+      Pop(&st,&trash);
+
+    }
+  return isEmpty(st);
   }
 
 int main()
@@ -272,10 +274,13 @@ int main()
   if (!(CreateRPN(exit,rpn,Tab))){printf("ERROR"); return 0;}
 
   printf("%s",rpn);
-  if(!(SolveRPN(rpn,&answer,Tab))){printf("ERROR"); return 0;}
-  printf("%s",exit);
   printf("\n");
-  printf("%s %d",rpn, answer);
+  if(!(SolveRPN(rpn,&answer,Tab))){printf("ERROR"); return 0;}
+  if(Tab[0] != -10){
+  printf("%c=%d",(char)Tab[0], answer);}
+  else{
+    printf("asnwer=%d",answer);
+}
   // for(int j = 0;j <= 255; j++){
   //   if (Tab[j] != 0){printf("%d",Tab[j]);}}
   // printf("%s",exit);
