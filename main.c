@@ -6,7 +6,7 @@
 
 struct nodeList
 {
-        int inf;
+        double inf;
         struct nodeList *next;
 };
 
@@ -21,7 +21,7 @@ typedef struct nodeList Node;
 typedef struct StekList Stek;
 
 
-bool Push(Stek*st, int value)
+bool Push(Stek*st, double value)
 {
 Node *el = (Node*)malloc(sizeof(Node));
 
@@ -45,7 +45,7 @@ Node *el = (Node*)malloc(sizeof(Node));
 
 
 
-bool ShowTop( Stek *st, int *value)
+bool ShowTop( Stek *st, double *value)
 {
         bool answer = false;
         if (value) {
@@ -65,7 +65,7 @@ bool isEmpty(Stek  *st)
         return false;
 }
 
-bool Pop(Stek *st, int *value)
+bool Pop(Stek *st, double *value)
 {
   if (isEmpty(st)==true){return false;}
   Node *currenttop = st->Top;
@@ -161,7 +161,7 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
           if (isEmpty(&st)){
           Clear(&st);
           return false;}
-          int simvol;
+          double simvol;
           while (Pop(&st,&simvol) && (char)simvol != '(')
             {
               poliz[lenrpn] = (char)simvol;
@@ -181,8 +181,8 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
             ravno = true;}
         if (prevskob && (element == '+' || element == '-')){unznak = true; prevskob = false;}
         if (unznak){poliz[lenrpn] = '0'; lenrpn++;}
-        int currentpr = Tab[element];
-        int Toppr;
+        double currentpr = Tab[element];
+        double Toppr;
         bool cont = true;
         while (!isEmpty(&st) && ShowTop(&st, &Toppr) && cont)
         {
@@ -214,7 +214,7 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
   return true;
 }
 
-bool SolveRPN(char *rpn, int *res,int *Tab)
+bool SolveRPN(char *rpn, double *res,int *Tab)
 {
   Stek st;
   st.Top = NULL;
@@ -237,8 +237,8 @@ bool SolveRPN(char *rpn, int *res,int *Tab)
     else if (element == '=') {
     if (yrav){return false;}
     yrav = true;
-    int num1;
-    int num2;
+    double num1;
+    double num2;
     if (!Pop(&st, &num1)) {return false;}
     if (!Pop(&st, &num2)) {return false;}
       *res = num1;
@@ -248,8 +248,8 @@ bool SolveRPN(char *rpn, int *res,int *Tab)
     }
     else{
     if(znak == true){Clear(&st); return false;}
-    int num1;
-    int num2;
+    double num1;
+    double num2;
     if (!Pop(&st,&num1))
       {
       return false;
@@ -258,14 +258,13 @@ bool SolveRPN(char *rpn, int *res,int *Tab)
       {
       return false;
       }
-    if (element == '+'){*res = num2 +num1;}
-    else if (element == '-'){*res = num2 -num1;}
-    else if (element == '*'){*res = num2 *num1;}
+    if (element == '+'){Push(&st,num2+num1);}
+    else if (element == '-'){Push(&st,num2-num1);}
+    else if (element == '*'){Push(&st,num2*num1);}
     else if (element == '/'){
       if (num1 == 0){return false;}
-      *res = num2/num1;
+      Push(&st,num2/num1);
       }
-    Push(&st,*res);
     znak = false;
     //chislo = false;
     }}
@@ -275,7 +274,7 @@ bool SolveRPN(char *rpn, int *res,int *Tab)
       return false;}
   Pop(&st,res); // достаем ответ
   if (yrav == true&& !isEmpty(&st))
-    { int trash;
+    { double trash;
       Pop(&st,&trash);
 
     }
@@ -289,7 +288,7 @@ int main()
   char url[1000] = "/Users/fliruden/vuz/RPN/file.txt";
   char exit[1000];
   char rpn[1000];
-  int answer;
+  double answer;
   Readning(url,exit,buff,Tab);
   if (!(CreateRPN(exit,rpn,Tab))){printf("ERROR"); return 0;}
 
@@ -297,9 +296,9 @@ int main()
   printf("\n");
   if(!(SolveRPN(rpn,&answer,Tab))){printf("ERROR"); return 0;}
   if(Tab[0] != -10){
-  printf("%c=%d",(char)Tab[0], answer);}
+  printf("%c=%f",(char)Tab[0], answer);}
   else{
-    printf("asnwer=%d",answer);
+    printf("asnwer=%f",answer);
 }
   // for(int j = 0;j <= 255; j++){
   //   if (Tab[j] != 0){printf("%d",Tab[j]);}}
