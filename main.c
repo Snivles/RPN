@@ -138,6 +138,7 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
   int lenrpn = 0;
   bool ravno = false;
   bool prevskob = true;
+  bool znak = false;
   for (int i = 0; stroka[i] != '\0'; i++)
   {
     char element = stroka[i];
@@ -170,8 +171,9 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
       else if (element == '+' || element == '-' || element == '*' || element == '/' || element == '=')
       {
         bool unznak = false;
+        //if(znak == true){return false;}
         if (element == '='){prevskob=true; ravno = true;}
-        if (prevskob && (element == '+' || element == '-')){unznak = true;}
+        if (prevskob && (element == '+' || element == '-')){unznak = true; prevskob = false;}
         if (unznak){poliz[lenrpn] = '0'; lenrpn++;}
         int currentpr = Tab[element];
         int Toppr;
@@ -188,6 +190,7 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
         }
         Push(&st,element);
         prevskob = false;
+        znak = true;
       }
     }
   }
@@ -211,26 +214,31 @@ bool SolveRPN(char *rpn, int *res,int *Tab)
   st.size = 0;
   bool chislo = false;
   bool yrav = false;
+  bool znak = true;
   for (int i = 0; rpn[i] != '\0'; i++)
   {
     char element = rpn[i];
     if ((element >= '0' && element <= '9'))
     {
       Push(&st,element-'0');
+      znak = false;
       //chislo = true;
     }
     else if ((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z')){
         Push(&st,Tab[element]);
+        znak = false;
         }
     else if (element == '=') {
     yrav = true;
     int num1;
-    if (!Pop(&st, &num1)) return false;
+    if (!Pop(&st, &num1)) {return false;}
       *res = num1;
       Push(&st, *res);
+      znak = false;
       //chislo = false;
     }
     else{
+    if(znak == true){Clear(&st); return false;}
     int num1;
     int num2;
     if (!Pop(&st,&num1))
@@ -249,6 +257,7 @@ bool SolveRPN(char *rpn, int *res,int *Tab)
       *res = num2/num1;
       }
     Push(&st,*res);
+    znak = false;
     //chislo = false;
     }}
 
