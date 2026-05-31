@@ -139,6 +139,7 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
   bool ravno = false;
   bool prevskob = true;
   bool znak = false;
+  bool digit = false;
   for (int i = 0; stroka[i] != '\0'; i++)
   {
     char element = stroka[i];
@@ -147,6 +148,7 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
       if ((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z') || (element >= '0' && element <= '9'))
       {
       if(((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z')) && first == -10&& ravno==false){first = (int)element;}
+      if((element >= '0' && element <= '9')){digit = true;}
       poliz[lenrpn] = element;
       lenrpn++;
       prevskob = false;
@@ -177,6 +179,7 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
         bool unznak = false;
         //if(znak == true){return false;}
         if (element == '='){
+            if (znak || digit){return false;}
             prevskob=true;
             ravno = true;}
         if (prevskob && (element == '+' || element == '-')){unznak = true; prevskob = false;}
@@ -201,7 +204,7 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
       }
     }
   }
-  int simvol;
+  double simvol;
   if (ravno == false){first = -10;}
   Tab[0] = first;
   while (Pop(&st, &simvol))
@@ -290,6 +293,8 @@ int main()
   char rpn[1000];
   double answer;
   Readning(url,exit,buff,Tab);
+  // printf("%s",exit);
+  // printf("\n");
   if (!(CreateRPN(exit,rpn,Tab))){printf("ERROR"); return 0;}
 
   printf("%s",rpn);
