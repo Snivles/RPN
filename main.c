@@ -96,12 +96,13 @@ void Clear(Stek *st)
 
 
 bool Readning(char *stroki , char *futurerpn,int buffer, int *Tab)
-{ Tab['+'] = 1;
-  Tab['-'] = 1;
-  Tab['*'] = 2;
-  Tab['/'] = 2;
-  Tab['('] = 0;
-  Tab['='] = -1;
+{   Tab['('] = 0;
+    Tab[')'] = 1;
+    Tab['='] = 9;
+    Tab['+'] = 6;
+    Tab['-'] = 6;
+    Tab['*'] = 7;
+    Tab['/'] = 7;
   if (stroki == NULL){return false;}
   FILE*in =fopen(stroki,"r");
   if (in== NULL){return false;}
@@ -159,6 +160,8 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
   bool znak = false;
   bool digit = false;
   bool skip;
+  int sravprior;
+  int stekprior;
   for (int i = 0; stroka[i] != '\0'; i++)
   {
     char element = stroka[i];
@@ -168,7 +171,8 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
       {
       if(((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z'))
         && first == -10&& ravno==false){
-          first = (int)element;}
+          first = (int)element;
+          digit=false;}
 
       if((element >= '0' && element <= '9')){
         digit = true;}
@@ -176,11 +180,17 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
       lenrpn++;
       prevskob = false;
       }
-      else if (element == '(')
+
+      else if (element == '(' || element == ')' || element == '+' || element == '-'
+      || element == '*' || element == '/' || element == '='){
+
+
+        if (element == '(')
         {
-          Push(&st,element,&skip);
+          Push(&st,element,false);
           prevskob = true;
         }
+
       else if (element == ')')
         {
           if (isEmpty(&st)){
@@ -199,24 +209,37 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
           prevskob=false;
         }
       else if (element == '+' || element == '-' || element == '*' || element == '/' || element == '=')
-      {
-        bool unznak = false;
+        {
+        double Toppr;
+        bool cont = true;
+        bool unar= false;
+        bool cheak = false;
+        if (prevskob && (element == '+' || element == '-')){
+            sravprior = 8;
+            unar = true;}
+        else if (element == '='){sravprior = 9;}
+        else {sravprior = Tab[(unsigned char)element];}
+
         if (element == '='){
             if (znak || digit){return false;}
             prevskob=true;
-            ravno = true;}
-        if (prevskob && (element == '+' || element == '-')){
-            unznak = true;
-            prevskob = false;}
-        if (unznak){
+            ravno = true;
+        }
+        if (unar){
             poliz[lenrpn] = '0';
-            lenrpn++;}
-        double currentpr = Tab[(unsigned char)element];
-        double Toppr;
-        bool cont = true;
-        while (!isEmpty(&st) && ShowTop(&st, &Toppr,&skip) && cont)
-        {
-          if (Tab[(unsigned char)Toppr]>= currentpr)
+            lenrpn++;
+            prevskob=false;}
+
+
+
+
+
+        while (!isEmpty(&st) && ShowTop(&st, &Toppr,&cheak) && cont)
+        { if (cheak == true){stekprior = 8;}
+          else if (Toppr!='='){stekprior=Tab[(unsigned char)Toppr];}
+          else{stekprior=2; prevskob=true;}
+
+          if (stekprior>= sravprior)
             {
               Pop(&st,&Toppr,&skip);
               poliz[lenrpn] = (char)Toppr;
@@ -224,10 +247,18 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
             }
           else{cont =false;}
         }
-        Push(&st,element,&skip);
+        Push(&st,element,unar);
         znak = true;
+        digit=false;
         if (element != '='){
         prevskob = false;}
+
+
+      }
+      else{return false;}
+
+
+
       }
     }
   }
@@ -283,6 +314,9 @@ bool SolveRPN(char *rpn, double *res,int *Tab)
         Push(&st,num1,false);
         znak = false;
       }
+    else{
+      return false;
+      }
     }
 
     else{
@@ -313,7 +347,6 @@ bool SolveRPN(char *rpn, double *res,int *Tab)
     }
     znak = false;
     }}
-
   if (isEmpty(&st)){
       Clear(&st);
       return false;}
@@ -332,7 +365,7 @@ int main()
 {
   int Tab[256]={0};
   int buff = 2000;
-  char url[1000] = "/Users/fliruden/vuz/RPN/file.txt";
+  char url[1000] = "/Users/fliruden/vuz/RPN/test4.txt";
   char exit[1000];
   char rpn[1000];
   double answer;
@@ -351,19 +384,15 @@ int main()
     return 0;}
 
   if(Tab[0] != -10){
-  printf("%c=%2.f",(char)Tab[0], answer);}
+  printf("%c=%.4f",(char)Tab[0], answer);}
   else{
-    printf("asnwer=%2.f",answer);
+    printf("asnwer=%.4f",answer);
 }
   // for(int j = 0;j <= 255; j++){
   //   if (Tab[j] != 0){printf("%d",Tab[j]);}}
   // printf("%s",exit);
   return 0;
 }
-//y=-(3+4)+2
-//
-//y=-(-(3+4)-a) a=150
-//
 //char url[1000] = "/Users/fliruden/vuz/RPN/fil.txt";
 
 //5+4) ERROR
@@ -376,6 +405,17 @@ int main()
 //y=(4+a) a = 150 верно, y=154
 //y=(4++a) ERROR
 //y=(-4+a) a = 150 верно, y=146
+//y=-(4+a) a= 10 y=-14
+// y= -(-1)+5 y=6
+//(4*15) ERROR
+//2a= a/b ERROR
+//y= 4a+b ERROR
+//4a+b ERROR
+//40+b ERROR
+//y= -(-(a-b)+(a+b))*((a-b)+(a+b)) a=2 b=4 , y=-3
+//-(-(a-b)+(a+b))*((a-b)+(a+b)) a=2 b=4 , y=-3
+//(4+a)=y , a=5 ERROR
+// y= a / b a=100 b = 21 Верно y=4.7619
 //(-4+a) a = 150 верно, answer=146
 //-4+a a = 150 верно, answer=146
 //-4++a a = 150 ERROR
