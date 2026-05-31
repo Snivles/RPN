@@ -24,6 +24,7 @@ typedef struct StekList Stek;
 
 bool Push(Stek*st, double value,bool cheak)
 {
+  if (st == NULL) {return false;}
 Node *el = (Node*)malloc(sizeof(Node));
 
         if (el) {
@@ -48,7 +49,7 @@ Node *el = (Node*)malloc(sizeof(Node));
 
 
 bool ShowTop( Stek *st, double *value, bool* cheak)
-{
+{if (st == NULL || value == NULL || cheak == NULL) {return false;}
         bool answer = false;
         if (value) {
                 if (st->Top)
@@ -70,7 +71,7 @@ bool isEmpty(Stek  *st)
 }
 
 bool Pop(Stek *st, double *value,bool*cheak)
-{
+{ if (st == NULL || value == NULL || cheak == NULL) {return false;}
   if (isEmpty(st)==true){return false;}
   Node *currenttop = st->Top;
   *value = currenttop->inf;
@@ -84,11 +85,11 @@ bool Pop(Stek *st, double *value,bool*cheak)
 }
 
 void Clear(Stek *st)
-{
+{ if(st!= NULL){
   double trash;
   bool cheak;
   while (!isEmpty(st)){
-    Pop(st,&trash,&cheak);
+    Pop(st,&trash,&cheak);}
   }
 }
 
@@ -96,14 +97,7 @@ void Clear(Stek *st)
 
 
 bool Readning(char *stroki , char *futurerpn,int buffer, int *Tab)
-{   Tab['('] = 0;
-    Tab[')'] = 1;
-    Tab['='] = 9;
-    Tab['+'] = 6;
-    Tab['-'] = 6;
-    Tab['*'] = 7;
-    Tab['/'] = 7;
-  if (stroki == NULL){return false;}
+{ if (stroki == NULL || futurerpn== NULL || Tab== NULL || buffer <= 0){return false;}
   FILE*in =fopen(stroki,"r");
   if (in== NULL){return false;}
   int count = 0;
@@ -138,18 +132,25 @@ return true;}
 
 bool take_value(double value, bool cheak,double *res,int *Tab)
 {
-    if(cheak == false)
-    {
-      *res = value;
-      return true;
-    }
-    *res=(int)Tab[(unsigned char)value];
+  if(res == NULL || Tab== NULL){return false;}
+  if(cheak == false)
+  {
+    *res = value;
     return true;
+  }
+  *res=(int)Tab[(unsigned char)value];
+  return true;
 }
 
 
 bool CreateRPN(char *stroka,char *poliz,int *Tab,int buff)
-{
+{ if (stroka== NULL || poliz == NULL || Tab==NULL || buff<=0){return false;}
+  Tab['('] = 0;
+  Tab['='] = 9;
+  Tab['+'] = 6;
+  Tab['-'] = 6;
+  Tab['*'] = 7;
+  Tab['/'] = 7;
   Stek st;
   st.Top = NULL;
   st.size = 0;
@@ -294,6 +295,7 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab,int buff)
 
 bool SolveRPN(char *rpn, double *res,int *Tab)
 {
+  if(rpn==NULL || res == NULL || Tab == NULL){return false;}
   Stek st;
   st.Top = NULL;
   st.size = 0;
@@ -363,7 +365,9 @@ bool SolveRPN(char *rpn, double *res,int *Tab)
     }
     znak = false;
     }}
-  if (st.size!= 1){Clear(&st);return false;}
+  if (st.size!= 1){
+    Clear(&st);
+    return false;}
   if (isEmpty(&st)){
       Clear(&st);
       return false;}
@@ -378,21 +382,28 @@ bool SolveRPN(char *rpn, double *res,int *Tab)
   return isEmpty(&st);
   }
 // test4 - ERROR
-// test5 -ERROR
+// test5 - ERROR
 // test6 - ERROR
-// test7 - ERROR
-// test10 - ERROR
-// test12 - ERROR
+// test8 - ERROR
+//test10 - ERROR
+//test12 - ERROR
+//test14 - ERROR
+//test15 - ERROR
+//test16 - ERROR
+
+// test13!! (комплексный)
 int main()
 {
   int Tab[256]={0}; 
   int buff = 2000;
-  char url[1000] = "/Users/fliruden/vuz/RPN/test15.txt";
-  char exit[1000];
-  char rpn[1000];
+  char url[1000] = "/Users/fliruden/vuz/RPN/test.txt";
+  char exit[2000];
+  char rpn[2000];
   double answer;
 
-  Readning(url,exit,buff,Tab);
+  if (!Readning(url,exit,buff,Tab)){
+    printf("ERROR READING");
+    return 0;}
   size_t buffer2 = sizeof(exit);
   if (!(CreateRPN(exit,rpn,Tab,buffer2))){
     printf("ERROR");
