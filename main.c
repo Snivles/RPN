@@ -8,6 +8,7 @@ struct nodeList
 {
         double inf;
         struct nodeList *next;
+        bool flag;
 };
 
 
@@ -21,13 +22,14 @@ typedef struct nodeList Node;
 typedef struct StekList Stek;
 
 
-bool Push(Stek*st, double value)
+bool Push(Stek*st, double value,bool cheak)
 {
 Node *el = (Node*)malloc(sizeof(Node));
 
         if (el) {
             el->inf = value;
                 el->next = NULL;
+                el->flag = cheak;
                 if (st->Top == NULL)
                 {
                         st->Top = el;
@@ -45,7 +47,7 @@ Node *el = (Node*)malloc(sizeof(Node));
 
 
 
-bool ShowTop( Stek *st, double *value)
+bool ShowTop( Stek *st, double *value, bool* cheak)
 {
         bool answer = false;
         if (value) {
@@ -53,6 +55,8 @@ bool ShowTop( Stek *st, double *value)
                 {
                         *value = st->Top->inf;
                         answer = true;
+                        *cheak = st->Top->flag;
+
                 }
         }
         return answer;
@@ -65,13 +69,15 @@ bool isEmpty(Stek  *st)
         return false;
 }
 
-bool Pop(Stek *st, double *value)
+bool Pop(Stek *st, double *value,bool*cheak)
 {
   if (isEmpty(st)==true){return false;}
   Node *currenttop = st->Top;
   *value = currenttop->inf;
   st->Top= currenttop->next;
+  *cheak = currenttop->flag;
   free(currenttop);
+  currenttop= NULL;
   st->size--;
   return true;
 
@@ -79,9 +85,10 @@ bool Pop(Stek *st, double *value)
 
 void Clear(Stek *st)
 {
-  int trash;
+  double trash;
+  bool cheak;
   while (!isEmpty(st)){
-    Pop(st,&trash);
+    Pop(st,&trash,&cheak);
   }
 }
 
@@ -122,11 +129,22 @@ bool Readning(char *stroki , char *futurerpn,int buffer, int *Tab)
   int valu;
     while (fscanf(in, " %c = %d", &name, &valu) == 2) {
         if ((name >= 'a' && name <= 'z') || (name >= 'A' && name <= 'Z')) {
-            Tab[name] = valu;
+            Tab[(unsigned char)name] = valu;
         }
     }
   fclose(in);
 return true;}
+
+bool take_value(double value, bool cheak,double *res,int *Tab)
+{
+    if(cheak == false)
+    {
+      *res = value;
+      return true;
+    }
+    *res=(int)Tab[(unsigned char)value];
+    return true;
+}
 
 
 bool CreateRPN(char *stroka,char *poliz,int *Tab)
@@ -140,6 +158,7 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
   bool prevskob = true;
   bool znak = false;
   bool digit = false;
+  bool skip;
   for (int i = 0; stroka[i] != '\0'; i++)
   {
     char element = stroka[i];
@@ -147,24 +166,29 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
     {
       if ((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z') || (element >= '0' && element <= '9'))
       {
-      if(((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z')) && first == -10&& ravno==false){first = (int)element;}
-      if((element >= '0' && element <= '9')){digit = true;}
+      if(((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z'))
+        && first == -10&& ravno==false){
+          first = (int)element;}
+
+      if((element >= '0' && element <= '9')){
+        digit = true;}
       poliz[lenrpn] = element;
       lenrpn++;
       prevskob = false;
       }
       else if (element == '(')
         {
-          Push(&st,element);
+          Push(&st,element,&skip);
           prevskob = true;
         }
       else if (element == ')')
         {
           if (isEmpty(&st)){
-          Clear(&st);
-          return false;}
+            Clear(&st);
+            return false;}
+
           double simvol;
-          while (Pop(&st,&simvol) && (char)simvol != '(')
+          while (Pop(&st,&simvol,&skip) && (char)simvol != '(')
             {
               poliz[lenrpn] = (char)simvol;
               lenrpn++;
@@ -177,27 +201,30 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
       else if (element == '+' || element == '-' || element == '*' || element == '/' || element == '=')
       {
         bool unznak = false;
-        //if(znak == true){return false;}
         if (element == '='){
             if (znak || digit){return false;}
             prevskob=true;
             ravno = true;}
-        if (prevskob && (element == '+' || element == '-')){unznak = true; prevskob = false;}
-        if (unznak){poliz[lenrpn] = '0'; lenrpn++;}
-        double currentpr = Tab[element];
+        if (prevskob && (element == '+' || element == '-')){
+            unznak = true;
+            prevskob = false;}
+        if (unznak){
+            poliz[lenrpn] = '0';
+            lenrpn++;}
+        double currentpr = Tab[(unsigned char)element];
         double Toppr;
         bool cont = true;
-        while (!isEmpty(&st) && ShowTop(&st, &Toppr) && cont)
+        while (!isEmpty(&st) && ShowTop(&st, &Toppr,&skip) && cont)
         {
-          if (Tab[(char)Toppr]>= currentpr)
+          if (Tab[(unsigned char)Toppr]>= currentpr)
             {
-              Pop(&st,&Toppr);
+              Pop(&st,&Toppr,&skip);
               poliz[lenrpn] = (char)Toppr;
               lenrpn++;
             }
           else{cont =false;}
         }
-        Push(&st,element);
+        Push(&st,element,&skip);
         znak = true;
         if (element != '='){
         prevskob = false;}
@@ -207,9 +234,10 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
   double simvol;
   if (ravno == false){first = -10;}
   Tab[0] = first;
-  while (Pop(&st, &simvol))
+  while (Pop(&st, &simvol,&skip))
   {
-      if ((char)simvol == '('){return false;}
+      if ((char)simvol == '('){
+        return false;}
       poliz[lenrpn] = (char)simvol;
       lenrpn++;
   }
@@ -229,56 +257,72 @@ bool SolveRPN(char *rpn, double *res,int *Tab)
     char element = rpn[i];
     if ((element >= '0' && element <= '9'))
     {
-      Push(&st,element-'0');
+      Push(&st,(double)element-'0',false);
       znak = false;
-      //chislo = true;
     }
     else if ((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z')){
-        Push(&st,Tab[element]);
+        Push(&st,(double)element,true);
         znak = false;
         }
     else if (element == '=') {
-    if (yrav){return false;}
+      if (yrav){
+      return false;}
     yrav = true;
     double num1;
     double num2;
-    if (!Pop(&st, &num1)) {return false;}
-    if (!Pop(&st, &num2)) {return false;}
-      *res = num1;
-      Push(&st, *res);
-      znak = false;
-      //chislo = false;
+    bool cheak1;
+    bool cheak2;
+    if (!Pop(&st, &num1,&cheak1))
+        {return false;}
+    if (!Pop(&st, &num2,&cheak2))
+        {return false;}
+
+    if (cheak2 && !cheak1)
+      {
+        take_value(num1,cheak1,&num1,Tab);
+        Push(&st,num1,false);
+        znak = false;
+      }
     }
+
     else{
-    if(znak == true){Clear(&st); return false;}
+    if(znak == true){
+      Clear(&st);
+      return false;}
     double num1;
     double num2;
-    if (!Pop(&st,&num1))
+    bool cheak1;
+    bool cheak2;
+    if (!Pop(&st,&num1,&cheak1))
       {
       return false;
       }
-    if (!Pop(&st,&num2))
+    if (!Pop(&st,&num2,&cheak2))
       {
       return false;
       }
-    if (element == '+'){Push(&st,num2+num1);}
-    else if (element == '-'){Push(&st,num2-num1);}
-    else if (element == '*'){Push(&st,num2*num1);}
+    take_value(num2,cheak2,&num2,Tab);
+    take_value(num1,cheak1,&num1,Tab);
+    if (element == '+'){Push(&st,num2+num1,false);}
+    else if (element == '-'){Push(&st,num2-num1,false);}
+    else if (element == '*'){Push(&st,num2*num1,false);}
     else if (element == '/'){
-      if (num1 == 0){return false;}
-      Push(&st,num2/num1);
-      }
+      if (num1 == 0){
+        return false;}
+      Push(&st,num2/num1,false);
+    }
     znak = false;
-    //chislo = false;
     }}
 
   if (isEmpty(&st)){
       Clear(&st);
       return false;}
-  Pop(&st,res); // достаем ответ
+  bool flag;
+  Pop(&st,res,&flag);
   if (yrav == true&& !isEmpty(&st))
     { double trash;
-      Pop(&st,&trash);
+      bool cheaki;
+      Pop(&st,&trash,&cheaki);
 
     }
   return isEmpty(&st);
@@ -295,15 +339,21 @@ int main()
   Readning(url,exit,buff,Tab);
   // printf("%s",exit);
   // printf("\n");
-  if (!(CreateRPN(exit,rpn,Tab))){printf("ERROR"); return 0;}
+  if (!(CreateRPN(exit,rpn,Tab))){
+    printf("ERROR");
+    return 0;}
 
   printf("%s",rpn);
   printf("\n");
-  if(!(SolveRPN(rpn,&answer,Tab))){printf("ERROR"); return 0;}
+
+  if(!(SolveRPN(rpn,&answer,Tab))){
+    printf("ERROR");
+    return 0;}
+
   if(Tab[0] != -10){
-  printf("%c=%f",(char)Tab[0], answer);}
+  printf("%c=%2.f",(char)Tab[0], answer);}
   else{
-    printf("asnwer=%f",answer);
+    printf("asnwer=%2.f",answer);
 }
   // for(int j = 0;j <= 255; j++){
   //   if (Tab[j] != 0){printf("%d",Tab[j]);}}
