@@ -126,7 +126,7 @@ bool Readning(char *stroki , char *futurerpn,int buffer, int *Tab)
        }
   }
   futurerpn[count] = '\0';
-  char  name;
+  unsigned char name;
   int valu;
     while (fscanf(in, " %c = %d", &name, &valu) == 2) {
         if ((name >= 'a' && name <= 'z') || (name >= 'A' && name <= 'Z')) {
@@ -148,7 +148,7 @@ bool take_value(double value, bool cheak,double *res,int *Tab)
 }
 
 
-bool CreateRPN(char *stroka,char *poliz,int *Tab)
+bool CreateRPN(char *stroka,char *poliz,int *Tab,int buff)
 {
   Stek st;
   st.Top = NULL;
@@ -164,7 +164,7 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
   int stekprior;
   for (int i = 0; stroka[i] != '\0'; i++)
   {
-    char element = stroka[i];
+    unsigned char element = stroka[i];
     if (element != ' ')
     {
       if ((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z') || (element >= '0' && element <= '9'))
@@ -176,9 +176,16 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
 
       if((element >= '0' && element <= '9')){
         digit = true;}
+
+      if(lenrpn >= buff-1){
+          Clear(&st);
+          return false;}
       poliz[lenrpn] = element;
       lenrpn++;
       prevskob = false;
+
+
+
       }
 
       else if (element == '(' || element == ')' || element == '+' || element == '-'
@@ -221,11 +228,15 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
         else {sravprior = Tab[(unsigned char)element];}
 
         if (element == '='){
-            if (znak || digit){return false;}
+            if (znak || digit){
+              return false;}
             prevskob=true;
             ravno = true;
         }
         if (unar){
+            if(lenrpn >= buff-1){
+                Clear(&st);
+                return false;}
             poliz[lenrpn] = '0';
             lenrpn++;
             prevskob=false;}
@@ -247,6 +258,9 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
             }
           else{cont =false;}
         }
+        if(lenrpn >= buff-1){
+          Clear(&st);
+          return false;}
         Push(&st,element,unar);
         znak = true;
         digit=false;
@@ -255,7 +269,9 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab)
 
 
       }
-      else{return false;}
+      else{
+        Clear(&st);
+        return false;}
 
 
 
@@ -285,7 +301,7 @@ bool SolveRPN(char *rpn, double *res,int *Tab)
   bool znak = true;
   for (int i = 0; rpn[i] != '\0'; i++)
   {
-    char element = rpn[i];
+    unsigned char element = rpn[i];
     if ((element >= '0' && element <= '9'))
     {
       Push(&st,(double)element-'0',false);
@@ -347,6 +363,7 @@ bool SolveRPN(char *rpn, double *res,int *Tab)
     }
     znak = false;
     }}
+  if (st.size!= 1){Clear(&st);return false;}
   if (isEmpty(&st)){
       Clear(&st);
       return false;}
@@ -360,22 +377,26 @@ bool SolveRPN(char *rpn, double *res,int *Tab)
     }
   return isEmpty(&st);
   }
-
+// test4 - ERROR
+// test5 -ERROR
+// test6 - ERROR
+// test7 - ERROR
+// test10 - ERROR
+// test12 - ERROR
 int main()
 {
-  int Tab[256]={0};
+  int Tab[256]={0}; 
   int buff = 2000;
-  char url[1000] = "/Users/fliruden/vuz/RPN/test4.txt";
+  char url[1000] = "/Users/fliruden/vuz/RPN/test15.txt";
   char exit[1000];
   char rpn[1000];
   double answer;
+
   Readning(url,exit,buff,Tab);
-  // printf("%s",exit);
-  // printf("\n");
-  if (!(CreateRPN(exit,rpn,Tab))){
+  size_t buffer2 = sizeof(exit);
+  if (!(CreateRPN(exit,rpn,Tab,buffer2))){
     printf("ERROR");
     return 0;}
-
   printf("%s",rpn);
   printf("\n");
 
