@@ -1,4 +1,4 @@
-y = a*c+d/b
+y = b/d * c + a
 a = 1
 b = 3
 c = 4
