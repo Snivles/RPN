@@ -22,7 +22,7 @@ typedef struct nodeList Node;
 typedef struct StekList Stek;
 
 
-bool Push(Stek*st, double value,bool cheak)
+bool Push(Stek*st, double value,bool check)
 {
   if (st == NULL) {return false;}
 Node *el = (Node*)malloc(sizeof(Node));
@@ -30,7 +30,7 @@ Node *el = (Node*)malloc(sizeof(Node));
         if (el) {
             el->inf = value;
                 el->next = NULL;
-                el->flag = cheak;
+                el->flag = check;
                 if (st->Top == NULL)
                 {
                         st->Top = el;
@@ -48,15 +48,15 @@ Node *el = (Node*)malloc(sizeof(Node));
 
 
 
-bool ShowTop( Stek *st, double *value, bool* cheak)
-{if (st == NULL || value == NULL || cheak == NULL) {return false;}
+bool ShowTop( Stek *st, double *value, bool* check)
+{if (st == NULL || value == NULL || check == NULL) {return false;}
         bool answer = false;
         if (value) {
                 if (st->Top)
                 {
                         *value = st->Top->inf;
                         answer = true;
-                        *cheak = st->Top->flag;
+                        *check = st->Top->flag;
 
                 }
         }
@@ -70,13 +70,13 @@ bool isEmpty(Stek  *st)
         return false;
 }
 
-bool Pop(Stek *st, double *value,bool*cheak)
-{ if (st == NULL || value == NULL || cheak == NULL) {return false;}
+bool Pop(Stek *st, double *value,bool*check)
+{ if (st == NULL || value == NULL || check == NULL) {return false;}
   if (isEmpty(st)==true){return false;}
   Node *currenttop = st->Top;
   *value = currenttop->inf;
   st->Top= currenttop->next;
-  *cheak = currenttop->flag;
+  *check = currenttop->flag;
   free(currenttop);
   currenttop= NULL;
   st->size--;
@@ -96,9 +96,9 @@ void Clear(Stek *st)
 
 
 
-bool ParsingFile(char *stroki , char *futurerpn,int buffer, int *Tab)
-{ if (stroki == NULL || futurerpn== NULL || Tab== NULL || buffer <= 0){return false;}
-  FILE*in =fopen(stroki,"r");
+bool ParsingFile(char *pathfile , char *futurerpn,int buffer, int *Tab)
+{ if (pathfile == NULL || futurerpn== NULL || Tab== NULL || buffer <= 0){return false;}
+  FILE*in =fopen(pathfile,"r");
   if (in== NULL){return false;}
   int count = 0;
   bool readingfs = true;
@@ -138,13 +138,30 @@ bool take_value(double value, bool cheak,double *res,int *Tab)
     *res = value;
     return true;
   }
-  *res=(int)Tab[(unsigned char)value];
+  *res= Tab[(unsigned char)value];
   return true;
 }
 
 
-bool CreateRPN(char *stroka,char *poliz,int *Tab,int buff)
-{ if (stroka== NULL || poliz == NULL || Tab==NULL || buff<=0){return false;}
+
+int getPriority(unsigned char c, int *Tab) {
+    if (Tab == NULL){
+        return -3;}
+    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')){
+        return -1;}
+    if (c >= '0' && c <= '9') {
+        return -2;}
+    if (c == '(' || c == ')' || c == '+' || c == '-' || c == '*' || c == '/' || c == '=') {
+        return Tab[c];
+    }
+    return -3;
+}
+
+
+
+bool CreateRPN(char *stroka,char *poliz,int buff,int *yravnenie)
+{ if (stroka== NULL || poliz == NULL || buff<=0){return false;}
+  int Tab[127]={0};
   Tab['('] = 0;
   Tab['='] = 9;
   Tab['+'] = 6;
@@ -163,6 +180,7 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab,int buff)
   bool skip;
   int sravprior;
   int stekprior;
+  int priority_check;
   for (int i = 0; stroka[i] != '\0'; i++)
   {
     unsigned char element = stroka[i];
@@ -172,14 +190,14 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab,int buff)
         Clear(&st);
         return false;
       }
-      if ((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z') || (element >= '0' && element <= '9'))
+      priority_check = getPriority(element, Tab);
+      if (priority_check==-1 || priority_check==-2)
       {
-      if(((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z'))
-        && first == -10&& ravno==false){
+      if((priority_check==-1) && first == -10&& ravno==false){
           first = (int)element;
           digit=false;}
 
-      if((element >= '0' && element <= '9')){
+      if(priority_check==-2){
         digit = true;}
 
       if(lenrpn >= buff-1){
@@ -193,8 +211,7 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab,int buff)
 
       }
 
-      else if (element == '(' || element == ')' || element == '+' || element == '-'
-      || element == '*' || element == '/' || element == '='){
+      else if (priority_check>=0){
 
 
         if (element == '(')
@@ -220,13 +237,13 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab,int buff)
             return false;}
           prevskob=false;
         }
-      else if (element == '+' || element == '-' || element == '*' || element == '/' || element == '=')
+      else if (priority_check>0)
         {
         double Toppr;
         bool cont = true;
         bool unar= false;
         bool cheak = false;
-        if (prevskob && (element == '+' || element == '-')){
+        if (prevskob && (priority_check==6)){
             sravprior = 8;
             unar = true;}
         else if (element == '='){sravprior = 9;}
@@ -285,7 +302,7 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab,int buff)
   }
   double simvol;
   if (ravno == false){first = -10;}
-  Tab[0] = first;
+  *yravnenie = first;
   while (Pop(&st, &simvol,&skip))
   {
       if ((char)simvol == '('){
@@ -324,20 +341,20 @@ bool SolveRPN(char *rpn, double *res,int *Tab)
     yrav = true;
     double num1;
     double num2;
-    bool cheak1;
-    bool cheak2;
-    if (!Pop(&st, &num1,&cheak1))
+    bool check1;
+    bool check2;
+    if (!Pop(&st, &num1,&check1))
         {
         Clear(&st);
         return false;}
-    if (!Pop(&st, &num2,&cheak2))
+    if (!Pop(&st, &num2,&check2))
         {
         Clear(&st);
         return false;}
 
-    if (cheak2 && !cheak1)
+    if (check2 && !check1)
       {
-        take_value(num1,cheak1,&num1,Tab);
+        take_value(num1,check1,&num1,Tab);
         Push(&st,num1,false);
         znak = false;
       }
@@ -353,20 +370,20 @@ bool SolveRPN(char *rpn, double *res,int *Tab)
       return false;}
     double num1;
     double num2;
-    bool cheak1;
-    bool cheak2;
-    if (!Pop(&st,&num1,&cheak1))
+    bool check1;
+    bool check2;
+    if (!Pop(&st,&num1,&check1))
       {
       Clear(&st);
       return false;
       }
-    if (!Pop(&st,&num2,&cheak2))
+    if (!Pop(&st,&num2,&check2))
       {
       Clear(&st);
       return false;
       }
-    take_value(num2,cheak2,&num2,Tab);
-    take_value(num1,cheak1,&num1,Tab);
+    take_value(num2,check2,&num2,Tab);
+    take_value(num1,check1,&num1,Tab);
     if (element == '+'){Push(&st,num2+num1,false);}
     else if (element == '-'){Push(&st,num2-num1,false);}
     else if (element == '*'){Push(&st,num2*num1,false);}
@@ -409,16 +426,17 @@ int main()
 {
   int Tab[256]={0};
   int buff = 2000;
-  char url[1000] = "/Users/fliruden/vuz/RPN/test15.txt";
+  char pathfile[1000] = "/Users/fliruden/vuz/RPN/test15.txt";
   char exit[2000];
   char rpn[2000];
+  int code_yrav;
   double answer;
 
-  if (!ParsingFile(url,exit,buff,Tab)){
+  if (!ParsingFile(pathfile,exit,buff,Tab)){
     printf("ERROR READING");
     return 0;}
   int buffer2 = 2000;
-  if (!(CreateRPN(exit,rpn,Tab,buffer2))){
+  if (!(CreateRPN(exit,rpn,buffer2,&code_yrav))){
     printf("ERROR");
     return 0;}
   printf("%s",rpn);
@@ -428,8 +446,8 @@ int main()
     printf("ERROR");
     return 0;}
 
-  if(Tab[0] != -10){
-  printf("%c=%.4f",(char)Tab[0], answer);}
+  if(code_yrav != -10){
+  printf("%c=%.4f",(char)code_yrav, answer);}
   else{
     printf("asnwer=%.4f",answer);
 }
