@@ -404,7 +404,7 @@ int main()
   if (!Readning(url,exit,buff,Tab)){
     printf("ERROR READING");
     return 0;}
-  size_t buffer2 = sizeof(exit);
+  int buffer2 = 2000;
   if (!(CreateRPN(exit,rpn,Tab,buffer2))){
     printf("ERROR");
     return 0;}
