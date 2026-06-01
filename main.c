@@ -396,7 +396,7 @@ int main()
 {
   int Tab[256]={0}; 
   int buff = 2000;
-  char url[1000] = "/Users/fliruden/vuz/RPN/test.txt";
+  char url[1000] = "/Users/fliruden/vuz/RPN/test17.txt";
   char exit[2000];
   char rpn[2000];
   double answer;
