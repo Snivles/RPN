@@ -168,6 +168,10 @@ bool CreateRPN(char *stroka,char *poliz,int *Tab,int buff)
     unsigned char element = stroka[i];
     if (element != ' ')
     {
+      if(element >=128){
+        Clear(&st);
+        return false;
+      }
       if ((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z') || (element >= '0' && element <= '9'))
       {
       if(((element >= 'a' && element <= 'z') || (element >= 'A' && element <= 'Z'))
@@ -405,7 +409,7 @@ int main()
 {
   int Tab[256]={0};
   int buff = 2000;
-  char url[1000] = "/Users/fliruden/vuz/RPN/test17.txt";
+  char url[1000] = "/Users/fliruden/vuz/RPN/test15.txt";
   char exit[2000];
   char rpn[2000];
   double answer;
