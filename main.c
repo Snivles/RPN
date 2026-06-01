@@ -96,7 +96,7 @@ void Clear(Stek *st)
 
 
 
-bool Readning(char *stroki , char *futurerpn,int buffer, int *Tab)
+bool ParsingFile(char *stroki , char *futurerpn,int buffer, int *Tab)
 { if (stroki == NULL || futurerpn== NULL || Tab== NULL || buffer <= 0){return false;}
   FILE*in =fopen(stroki,"r");
   if (in== NULL){return false;}
@@ -315,6 +315,7 @@ bool SolveRPN(char *rpn, double *res,int *Tab)
         }
     else if (element == '=') {
       if (yrav){
+      Clear(&st);
       return false;}
     yrav = true;
     double num1;
@@ -322,9 +323,13 @@ bool SolveRPN(char *rpn, double *res,int *Tab)
     bool cheak1;
     bool cheak2;
     if (!Pop(&st, &num1,&cheak1))
-        {return false;}
+        {
+        Clear(&st);
+        return false;}
     if (!Pop(&st, &num2,&cheak2))
-        {return false;}
+        {
+        Clear(&st);
+        return false;}
 
     if (cheak2 && !cheak1)
       {
@@ -333,6 +338,7 @@ bool SolveRPN(char *rpn, double *res,int *Tab)
         znak = false;
       }
     else{
+      Clear(&st);
       return false;
       }
     }
@@ -347,10 +353,12 @@ bool SolveRPN(char *rpn, double *res,int *Tab)
     bool cheak2;
     if (!Pop(&st,&num1,&cheak1))
       {
+      Clear(&st);
       return false;
       }
     if (!Pop(&st,&num2,&cheak2))
       {
+      Clear(&st);
       return false;
       }
     take_value(num2,cheak2,&num2,Tab);
@@ -360,6 +368,7 @@ bool SolveRPN(char *rpn, double *res,int *Tab)
     else if (element == '*'){Push(&st,num2*num1,false);}
     else if (element == '/'){
       if (num1 == 0){
+        Clear(&st);
         return false;}
       Push(&st,num2/num1,false);
     }
@@ -401,7 +410,7 @@ int main()
   char rpn[2000];
   double answer;
 
-  if (!Readning(url,exit,buff,Tab)){
+  if (!ParsingFile(url,exit,buff,Tab)){
     printf("ERROR READING");
     return 0;}
   int buffer2 = 2000;
