@@ -403,7 +403,7 @@ bool SolveRPN(char *rpn, double *res,int *Tab)
 // test13!! (комплексный)
 int main()
 {
-  int Tab[256]={0}; 
+  int Tab[256]={0};
   int buff = 2000;
   char url[1000] = "/Users/fliruden/vuz/RPN/test17.txt";
   char exit[2000];
